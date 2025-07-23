@@ -5,15 +5,11 @@
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <!-- TODO: Use <include> and <exclude> to control what is backed up.
-        <include .../>
-        <exclude .../>
-        -->
+        <exclude domain="sharedpref" path="user_preferences.preferences_pb"/>
+        <exclude domain="database" path="contact_database"/>
     </cloud-backup>
-    <!--
     <device-transfer>
-        <include .../>
-        <exclude .../>
+        <exclude domain="sharedpref" path="user_preferences.preferences_pb"/>
+        <exclude domain="database" path="contact_database"/>
     </device-transfer>
-    -->
 </data-extraction-rules>
