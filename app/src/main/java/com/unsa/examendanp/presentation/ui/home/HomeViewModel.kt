@@ -48,11 +48,27 @@ class HomeViewModel @Inject constructor(
                 userPreferences.saveDeviceId(newDeviceId)
 
                 try {
-                    val fcmToken = FirebaseMessaging.getInstance().token.await()
+                    // Verificar si Firebase está disponible
+                    val fcmToken = try {
+                        val token = FirebaseMessaging.getInstance().token.await()
+                        println("FCM Token obtenido: ${token.take(20)}...")
+                        token
+                    } catch (e: Exception) {
+                        println("Error obteniendo FCM token: ${e.message}")
+                        "offline_token_${System.currentTimeMillis()}"
+                    }
+
                     userPreferences.saveFcmToken(fcmToken)
-                    repository.registerUser(newUserId, fcmToken)
+
+                    val registerResult = repository.registerUser(newUserId, fcmToken)
+                    if (registerResult.isFailure) {
+                        println("Error registrando usuario: ${registerResult.exceptionOrNull()?.message}")
+                    }
                 } catch (e: Exception) {
-                    _uiState.update { it.copy(error = "Error al registrar usuario") }
+                    // Continuar en modo offline
+                    println("Excepción general: ${e.message}")
+                    e.printStackTrace()
+                    _uiState.update { it.copy(error = "Modo offline: ${e.message}") }
                 }
             }
 
@@ -84,23 +100,42 @@ class HomeViewModel @Inject constructor(
 
     fun syncContacts() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isSyncing = true) }
+            _uiState.update { it.copy(isSyncing = true, error = null) }
 
-            val userId = userPreferences.userId.first() ?: return@launch
-            val result = repository.syncContacts(userId)
-
-            if (result.isSuccess) {
-                _uiState.update {
-                    it.copy(
-                        isSyncing = false,
-                        lastSyncTime = System.currentTimeMillis()
-                    )
+            try {
+                val userId = userPreferences.userId.first()
+                if (userId.isNullOrEmpty()) {
+                    _uiState.update {
+                        it.copy(
+                            isSyncing = false,
+                            error = "Usuario no registrado"
+                        )
+                    }
+                    return@launch
                 }
-            } else {
+
+                val result = repository.syncContacts(userId)
+
+                if (result.isSuccess) {
+                    _uiState.update {
+                        it.copy(
+                            isSyncing = false,
+                            lastSyncTime = System.currentTimeMillis()
+                        )
+                    }
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            isSyncing = false,
+                            error = result.exceptionOrNull()?.message ?: "Error al sincronizar"
+                        )
+                    }
+                }
+            } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
                         isSyncing = false,
-                        error = "Error al sincronizar contactos"
+                        error = "Error: ${e.message}"
                     )
                 }
             }
@@ -109,6 +144,14 @@ class HomeViewModel @Inject constructor(
 
     fun clearError() {
         _uiState.update { it.copy(error = null) }
+    }
+
+    // Solo para pruebas
+    fun toggleInfectionStatus() {
+        viewModelScope.launch {
+            val currentStatus = userPreferences.isInfected.first()
+            userPreferences.setInfectionStatus(!currentStatus)
+        }
     }
 }
 

@@ -34,10 +34,21 @@ class ContactSyncWorker @AssistedInject constructor(
                 // Clean up old data
                 repository.cleanupOldData()
 
-                // Check infection status
-                val infectionResult = repository.checkInfectionStatus(userId)
-                if (infectionResult.isSuccess) {
-                    userPreferences.setInfectionStatus(infectionResult.getOrDefault(false))
+                // Check infection status - manejar errores aquí
+                try {
+                    val infectionResult = repository.checkInfectionStatus(userId)
+                    if (infectionResult.isSuccess) {
+                        val isInfected = infectionResult.getOrDefault(false)
+                        // AQUÍ SE ACTUALIZA EL ESTADO DE INFECCIÓN
+                        userPreferences.setInfectionStatus(isInfected)
+
+                        if (isInfected) {
+                            println("Usuario marcado como POSITIVO durante sincronización")
+                        }
+                    }
+                } catch (e: Exception) {
+                    // Log pero no fallar si no se puede verificar el estado
+                    e.printStackTrace()
                 }
 
                 Result.success()
@@ -45,6 +56,7 @@ class ContactSyncWorker @AssistedInject constructor(
                 Result.retry()
             }
         } catch (e: Exception) {
+            e.printStackTrace()
             Result.retry()
         }
     }

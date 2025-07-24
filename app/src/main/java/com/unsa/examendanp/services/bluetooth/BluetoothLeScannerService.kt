@@ -19,7 +19,7 @@ import javax.inject.Singleton
 
 @SuppressLint("MissingPermission")
 @Singleton
-class BluetoothLeScanner @Inject constructor(
+class BluetoothLeScannerService @Inject constructor(
     @ApplicationContext private val context: Context,
     private val repository: ContactRepository,
     private val cryptoUtils: CryptoUtils

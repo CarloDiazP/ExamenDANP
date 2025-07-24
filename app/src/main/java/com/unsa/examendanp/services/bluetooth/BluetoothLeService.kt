@@ -18,7 +18,7 @@ import javax.inject.Inject
 class BluetoothLeService : Service() {
 
     @Inject
-    lateinit var bluetoothScanner: BluetoothLeScanner
+    lateinit var bluetoothScanner: BluetoothLeScannerService
 
     @Inject
     lateinit var userPreferences: UserPreferences

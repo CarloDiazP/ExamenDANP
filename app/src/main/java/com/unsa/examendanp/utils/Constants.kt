@@ -11,7 +11,7 @@ object Constants {
 
     // Firebase
     const val CONTACTS_COLLECTION = "contacts"
-    const val USERS_COLLECTION = "users"
+    const val USERS_COLLECTION = "userscovid"
 
     // Storage
     const val DATABASE_NAME = "contact_database"

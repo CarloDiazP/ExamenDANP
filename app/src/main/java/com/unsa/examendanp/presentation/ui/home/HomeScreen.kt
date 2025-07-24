@@ -33,9 +33,51 @@ fun HomeScreen(
     val contactCount by viewModel.contactCount.collectAsStateWithLifecycle(initialValue = 0)
     val isInfected by viewModel.isInfected.collectAsStateWithLifecycle(initialValue = false)
 
-    val permissionsState = rememberMultiplePermissionsState(
-        permissions = PermissionUtils.requiredPermissions
+    // Manejar permisos de forma más granular
+    val bluetoothPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        listOf(
+            Manifest.permission.BLUETOOTH_SCAN,
+            Manifest.permission.BLUETOOTH_ADVERTISE,
+            Manifest.permission.BLUETOOTH_CONNECT
+        )
+    } else {
+        listOf(
+            Manifest.permission.BLUETOOTH,
+            Manifest.permission.BLUETOOTH_ADMIN
+        )
+    }
+
+    val locationPermissions = listOf(
+        Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.ACCESS_COARSE_LOCATION
     )
+
+    val notificationPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        listOf(Manifest.permission.POST_NOTIFICATIONS)
+    } else {
+        emptyList()
+    }
+
+    // Combinar todos los permisos necesarios
+    val allPermissions = bluetoothPermissions + locationPermissions + notificationPermission
+
+    val permissionsState = rememberMultiplePermissionsState(
+        permissions = allPermissions
+    )
+
+    // Debug: Imprimir estado de permisos
+    LaunchedEffect(permissionsState.permissions) {
+        permissionsState.permissions.forEach { perm ->
+            println("Permission ${perm.permission}: ${perm.status}")
+        }
+    }
+
+    // Solicitar permisos automáticamente si no se han otorgado
+    LaunchedEffect(Unit) {
+        if (!permissionsState.allPermissionsGranted) {
+            permissionsState.launchMultiplePermissionRequest()
+        }
+    }
 
     LaunchedEffect(permissionsState.allPermissionsGranted) {
         if (permissionsState.allPermissionsGranted && !uiState.isTracingActive) {
@@ -78,8 +120,17 @@ fun HomeScreen(
         ) {
             // Permission Request
             if (!permissionsState.allPermissionsGranted) {
+                val deniedPermissions = permissionsState.permissions.filter {
+                    !it.status.isGranted
+                }
+
                 PermissionRequestCard(
-                    onRequestPermissions = { permissionsState.launchMultiplePermissionRequest() }
+                    onRequestPermissions = {
+                        permissionsState.launchMultiplePermissionRequest()
+                    },
+                    showRationale = deniedPermissions.any {
+                        it.status.shouldShowRationale
+                    }
                 )
             } else {
                 // Status Cards
@@ -122,14 +173,18 @@ fun HomeScreen(
 
 @Composable
 fun PermissionRequestCard(
-    onRequestPermissions: () -> Unit
+    onRequestPermissions: () -> Unit,
+    showRationale: Boolean = false
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer
+            containerColor = if (showRationale)
+                MaterialTheme.colorScheme.errorContainer
+            else
+                MaterialTheme.colorScheme.primaryContainer
         )
     ) {
         Column(
@@ -137,16 +192,19 @@ fun PermissionRequestCard(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(
-                Icons.Default.Warning,
+                if (showRationale) Icons.Default.Close else Icons.Default.Warning,
                 contentDescription = null,
                 modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.error
+                tint = if (showRationale)
+                    MaterialTheme.colorScheme.error
+                else
+                    MaterialTheme.colorScheme.primary
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                "Permisos Requeridos",
+                if (showRationale) "Permisos Denegados" else "Permisos Requeridos",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -154,10 +212,28 @@ fun PermissionRequestCard(
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                "Esta aplicación necesita permisos de Bluetooth y ubicación para detectar dispositivos cercanos.",
+                if (showRationale) {
+                    "Has denegado algunos permisos. La aplicación necesita estos permisos para funcionar correctamente. Por favor, otórgalos desde la configuración del dispositivo."
+                } else {
+                    "Esta aplicación necesita los siguientes permisos para funcionar correctamente:"
+                },
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyMedium
             )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Lista de permisos necesarios
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                PermissionItem("Bluetooth", "Para detectar dispositivos cercanos")
+                PermissionItem("Ubicación", "Requerido por Android para usar Bluetooth LE")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    PermissionItem("Notificaciones", "Para alertas de exposición")
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -167,6 +243,46 @@ fun PermissionRequestCard(
             ) {
                 Text("Otorgar Permisos")
             }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                "Nota: La ubicación no se rastrea, solo es un requisito de Android para Bluetooth",
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+fun PermissionItem(
+    title: String,
+    description: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Top
+    ) {
+        Icon(
+            Icons.Default.CheckCircle,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Column {
+            Text(
+                title,
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
