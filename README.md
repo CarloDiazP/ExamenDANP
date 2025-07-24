@@ -1,10 +1,10 @@
 # COVID-19 Contact Tracing App - UNSA
 
 ## Integrantes
-- Carrillo Daza, Bárbara Rubí
-- Diaz Portilla, Carlo Rodrigo 
-- Mamani Cañari, Gabriel Antony
-- Ticona Hareth, Anthony Joaquin
+- Carrillo Daza, Bárbara Rubí (100%)
+- Diaz Portilla, Carlo Rodrigo (100%) 
+- Mamani Cañari, Gabriel Antony (100%)
+- Ticona Hareth, Anthony Joaquin (100%)
 
 ## Descripción del Proyecto
 
