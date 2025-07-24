@@ -72,9 +72,32 @@ class FirebaseMessagingService : FirebaseMessagingService() {
     private fun handleInfectionUpdate(remoteMessage: RemoteMessage) {
         val isInfected = remoteMessage.data["isInfected"]?.toBoolean() ?: false
 
+        println("Actualización de estado de infección recibida: $isInfected")
+
         scope.launch {
+            // AQUÍ SE ACTUALIZA EL ESTADO VÍA NOTIFICACIÓN PUSH
             userPreferences.setInfectionStatus(isInfected)
+
+            if (isInfected) {
+                // Mostrar notificación local al usuario
+                showInfectionStatusNotification()
+            }
         }
+    }
+
+    private fun showInfectionStatusNotification() {
+        createExposureNotificationChannel()
+
+        val notification = NotificationCompat.Builder(this, EXPOSURE_CHANNEL_ID)
+            .setContentTitle("Estado COVID-19 Actualizado")
+            .setContentText("Su estado ha sido actualizado a POSITIVO. Por favor, tome las precauciones necesarias.")
+            .setSmallIcon(R.drawable.ic_warning)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .build()
+
+        val notificationManager = getSystemService(NotificationManager::class.java)
+        notificationManager.notify(EXPOSURE_NOTIFICATION_ID + 1, notification)
     }
 
     private fun createExposureNotificationChannel() {

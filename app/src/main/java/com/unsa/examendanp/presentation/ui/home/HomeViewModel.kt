@@ -2,6 +2,7 @@ package com.unsa.examendanp.presentation.ui.home
 
 import android.app.Application
 import android.content.Intent
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.messaging.FirebaseMessaging
@@ -39,7 +40,6 @@ class HomeViewModel @Inject constructor(
     private fun initializeUser() {
         viewModelScope.launch {
             val existingUserId = userPreferences.userId.first()
-
             if (existingUserId == null) {
                 val newUserId = cryptoUtils.generateUserId()
                 val newDeviceId = cryptoUtils.generateUserId()
@@ -71,6 +71,7 @@ class HomeViewModel @Inject constructor(
                     _uiState.update { it.copy(error = "Modo offline: ${e.message}") }
                 }
             }
+            Log.d("USERID",userPreferences.userId.first().toString() )
 
             _uiState.update { it.copy(userId = userPreferences.userId.first() ?: "") }
         }

@@ -1,6 +1,7 @@
 package com.unsa.examendanp.services.sync
 
 import android.content.Context
+import android.util.Log
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -19,6 +20,7 @@ class ContactSyncWorker @AssistedInject constructor(
 ) : CoroutineWorker(context, workerParams) {
 
     override suspend fun doWork(): Result {
+        Log.d("RUN_SYNC", "Running sync")
         return try {
             // Get user ID
             val userId = userPreferences.userId.first()
