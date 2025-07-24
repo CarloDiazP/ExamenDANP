@@ -39,7 +39,7 @@ class ExamenDanpApplication : Application(), Configuration.Provider {
 
     private fun setupPeriodicSync() {
         val syncWorkRequest = PeriodicWorkRequestBuilder<ContactSyncWorker>(
-            2, TimeUnit.MINUTES
+            15, TimeUnit.MINUTES
         ).build()
 
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
