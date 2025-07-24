@@ -27,12 +27,11 @@ La aplicación utiliza arquitectura MVVM con los siguientes componentes:
 
 ## Tecnologías y Temas del Curso Aplicados
 
-1. **GPS/Location Services (Tema 9)**: Solo para permisos, NO para rastreo de ubicación
-2. **Almacenamiento Local (Tema 10)**: Room Database para contactos temporales
-3. **Networking/API REST (Tema 11)**: Sincronización con Firebase
-4. **Sincronización de Datos (Tema 12)**: WorkManager para sync periódico
-5. **Notificaciones Push/FCM (Tema 13)**: Alertas de exposición
-6. **Comunicación Bluetooth (Tema 14)**: Core de la solución con BLE
+1. **Almacenamiento Local (Tema 12)**: Room Database para contactos temporales
+2. **Networking/API REST (Tema 10)**: Sincronización con Firebase
+3. **Sincronización de Datos (Tema 12)**: WorkManager para sync periódico
+4. **Notificaciones Push/FCM (Tema 13)**: Alertas de exposición
+5. **Comunicación Bluetooth (Tema 14)**: Core de la solución con BLE
 
 ## Características principales
 
