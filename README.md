@@ -21,7 +21,7 @@ La aplicación utiliza arquitectura MVVM con los siguientes componentes:
 
 ## Análisis de Tecnologías
 
-### 1. Bluetooth Low Energy (BLE) ✅ [SELECCIONADA]
+### Bluetooth Low Energy (BLE) [SELECCIONADA]
 - **Ventajas**: Excelente eficiencia energética, no revela ubicación GPS, alcance ideal de ~30m
 - **Desventajas**: Señal puede variar por obstáculos
 
